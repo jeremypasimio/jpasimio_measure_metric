@@ -12,7 +12,6 @@ import java.awt.event.MouseEvent;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JMenuItem;
@@ -23,10 +22,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
 import main.java.memoranda.EventsManager;
 import main.java.memoranda.EventsScheduler;
 import main.java.memoranda.History;
+import main.java.memoranda.Parameter;
 import main.java.memoranda.date.CalendarDate;
 import main.java.memoranda.date.CurrentDate;
 import main.java.memoranda.date.DateListener;
@@ -225,8 +224,8 @@ public class EventsPanel extends JPanel {
 
     void editEventB_actionPerformed(ActionEvent e) {
         EventDialog dlg = new EventDialog(App.getFrame(), Local.getString("Event"));
-        main.java.memoranda.Event ev =
-            (main.java.memoranda.Event) eventsTable.getModel().getValueAt(
+        main.java.memoranda.interfaces.IEvent ev =
+            (main.java.memoranda.interfaces.IEvent) eventsTable.getModel().getValueAt(
                 eventsTable.getSelectedRow(),
                 EventsTable.EVENT);
         
@@ -361,6 +360,7 @@ public class EventsPanel extends JPanel {
     }
 
     private void updateEvents(EventDialog dlg, int hh, int mm, String text) {
+      Parameter p = new Parameter();
 	int rtype;
         int period;
         CalendarDate sd = new CalendarDate((Date) dlg.startDate.getModel().getValue());
@@ -388,18 +388,28 @@ public class EventsPanel extends JPanel {
             rtype = EventsManager.REPEAT_MONTHLY;
             period = ((Integer) dlg.dayOfMonthSpin.getModel().getValue()).intValue();
         }
-        EventsManager.createRepeatableEvent(rtype, sd, ed, period, hh, mm, text, dlg.workingDaysOnlyCB.isSelected());
+        // TASK 2-1 SMELL WITHIN A CLASS
+        //Created Parameter p and set values.
+        p.setType(rtype);
+        p.setStartDate(sd);
+        p.setEndDate(ed);
+        p.setPeriod(period);
+        p.setHh(hh);
+        p.setMm(mm);
+        p.setText(text);
+        p.setWorkDays(dlg.workingDaysOnlyCB.isSelected());
+        EventsManager.createRepeatableEvent(p);
     }
 
     void removeEventB_actionPerformed(ActionEvent e) {
 		String msg;
-		main.java.memoranda.Event ev;
+		main.java.memoranda.interfaces.IEvent ev;
 
 		if(eventsTable.getSelectedRows().length > 1) 
 			msg = Local.getString("Remove") + " " + eventsTable.getSelectedRows().length 
 				+ " " + Local.getString("events") + "\n" + Local.getString("Are you sure?");
 		else {
-			ev = (main.java.memoranda.Event) eventsTable.getModel().getValueAt(
+			ev = (main.java.memoranda.interfaces.IEvent) eventsTable.getModel().getValueAt(
                 eventsTable.getSelectedRow(),
                 EventsTable.EVENT);
 			msg = Local.getString("Remove event") + "\n'" 
@@ -415,7 +425,7 @@ public class EventsPanel extends JPanel {
         if (n != JOptionPane.YES_OPTION) return;
 
         for(int i=0; i< eventsTable.getSelectedRows().length;i++) {
-			ev = (main.java.memoranda.Event) eventsTable.getModel().getValueAt(
+			ev = (main.java.memoranda.interfaces.IEvent) eventsTable.getModel().getValueAt(
                   eventsTable.getSelectedRows()[i], EventsTable.EVENT);
         EventsManager.removeEvent(ev);
 		}

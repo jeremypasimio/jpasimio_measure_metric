@@ -7,19 +7,16 @@
  */
 package main.java.memoranda;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
-
 import main.java.memoranda.date.CalendarDate;
+import main.java.memoranda.interfaces.IEvent;
 import main.java.memoranda.util.CurrentStorage;
 import main.java.memoranda.util.Util;
-
-import java.util.Map;
-import java.util.Collections;
-
 import nu.xom.Attribute;
 //import nu.xom.Comment;
 import nu.xom.Document;
@@ -112,7 +109,7 @@ public class EventsManager {
 		return v;
 	}
 
-	public static Event createEvent(
+	public static IEvent createEvent(
 		CalendarDate date,
 		int hh,
 		int mm,
@@ -129,15 +126,18 @@ public class EventsManager {
 		return new EventImpl(el);
 	}
 
-	public static Event createRepeatableEvent(
-		int type,
-		CalendarDate startDate,
-		CalendarDate endDate,
-		int period,
-		int hh,
-		int mm,
-		String text,
-		boolean workDays) {
+	// TASK 2-1 SMELL WITHIN A CLASS
+	//Long parameter list.  8 parameters is too many.
+	//Will attempt to create parameter object instead.
+	public static IEvent createRepeatableEvent(Parameter p) {
+		int type = p.getType();
+		CalendarDate startDate = p.getStartDate();
+		CalendarDate endDate = p.getEndDate();
+		int period = p.getPeriod();
+		int hh = p.getHh();
+		int mm = p.getMm();
+		String text = p.getText();
+		boolean workDays = p.isWorkDays();
 		Element el = new Element("event");
 		Element rep = _root.getFirstChildElement("repeatable");
 		if (rep == null) {
@@ -174,7 +174,7 @@ public class EventsManager {
 		Vector reps = (Vector) getRepeatableEvents();
 		Vector v = new Vector();
 		for (int i = 0; i < reps.size(); i++) {
-			Event ev = (Event) reps.get(i);
+			IEvent ev = (IEvent) reps.get(i);
 			
 			// --- ivanrise
 			// ignore this event if it's a 'only working days' event and today is weekend.
@@ -224,7 +224,7 @@ public class EventsManager {
 		return getEventsForDate(CalendarDate.today());
 	}
 
-	public static Event getEvent(CalendarDate date, int hh, int mm) {
+	public static IEvent getEvent(CalendarDate date, int hh, int mm) {
 		Day d = getDay(date);
 		if (d == null)
 			return null;
@@ -246,7 +246,7 @@ public class EventsManager {
 			d.getElement().removeChild(getEvent(date, hh, mm).getContent());
 	}
 
-	public static void removeEvent(Event ev) {
+	public static void removeEvent(IEvent ev) {
 		ParentNode parent = ev.getContent().getParent();
 		parent.removeChild(ev.getContent());
 	}
@@ -290,7 +290,11 @@ public class EventsManager {
 			return null;
 		return m.getDay(date.getDay());
 	}
-
+	//TASK 2-2 SMELL BETWEEN CLASSES
+    //Duplicate Code: Same code is found in NoteListImpl.java.
+    //Will attempt to extract these classes (Year, Month, Day) into
+    //separate classes.
+/*
 	static class Year {
 		Element yearElement = null;
 
@@ -332,8 +336,8 @@ public class EventsManager {
 			return yearElement;
 		}
 
-	}
-
+	}*/
+/*
 	static class Month {
 		Element mElement = null;
 
@@ -392,8 +396,8 @@ public class EventsManager {
 			return mElement;
 		}
 
-	}
-
+	}*/
+/*
 	static class Day {
 		Element dEl = null;
 
@@ -403,16 +407,16 @@ public class EventsManager {
 
 		public int getValue() {
 			return new Integer(dEl.getAttribute("day").getValue()).intValue();
-		}
+		}*/
 
 		/*
 		 * public Note getNote() { return new NoteImpl(dEl);
 		 */
-
+/*
 		public Element getElement() {
 			return dEl;
 		}
-	}
+	}*/
 /*
 	static class EventsVectorSorter {
 
